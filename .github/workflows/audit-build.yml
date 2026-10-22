@@ -1,0 +1,28 @@
+name: Audit build
+on: workflow_dispatch
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: windows
+    env:
+      LIBCLANG_PATH: C:\Program Files\LLVM\bin
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: krazzer00/keyboop
+          ref: 86ef309460d478a64fe29a0813020f06329d64b9
+      - name: Build
+        run: cargo build --release --locked
+      - name: Hash
+        shell: pwsh
+        run: (Get-FileHash target/release/keyboop.exe -Algorithm SHA256).Hash.ToLower() | Out-File -Encoding ascii sha256.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: keyboop-windows
+          path: |
+            windows/target/release/keyboop.exe
+            windows/sha256.txt
